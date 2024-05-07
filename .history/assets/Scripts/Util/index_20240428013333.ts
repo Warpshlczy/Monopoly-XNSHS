@@ -1,0 +1,30 @@
+import { Scene, Node, log } from "cc";
+
+//在SceneManager基类内调用，获取当前场景内所有的Node以及其Components的实例对象并重新封装
+export const getAllNodesInScene = (scene: Scene) => {
+  const ref = [];
+  const _ref = {};
+  const findChildren = (node: Node) => {
+    const _node = Object.assign({}, node);
+    if (_node.children.length) {
+      _node.children.forEach((child) => {
+        _node[child.name] = child;
+        findChildren(child);
+      });
+    } else return;
+  };
+  scene.children.forEach((node: Node) => {
+    ref.push(node);
+    findChildren(node);
+  });
+  ref.forEach((node: Node) => {
+    for (const comp of node.components) {
+      node[comp.name.split(/[<>]/)[1].toLowerCase()] = comp;
+    }
+    _ref[node.name] = node;
+  });
+  return _ref;
+};
+export const renamePrefab = (prefab: Node, name: string) => {
+  prefab.name = name;
+};
