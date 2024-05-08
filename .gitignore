@@ -2,6 +2,7 @@
 #///////////////////////////
 # Cocos Creator 3D Project
 #///////////////////////////
+
 library/
 temp/
 local/
@@ -17,6 +18,7 @@ node_modules/
 # VSCode
 #//////////////////////////
 .vscode/
+.history
 
 #//////////////////////////
 # WebStorm

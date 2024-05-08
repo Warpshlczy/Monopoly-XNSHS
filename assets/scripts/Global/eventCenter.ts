@@ -16,6 +16,7 @@ import { LandBlock } from "../GameObject/LocalGame/landBlock";
 import { renamePrefab, simpleClone } from "../Util";
 import { Player } from "../GameObject/LocalGame/player";
 import { Land } from "../Items/lands";
+import { PlayerPiece } from "../GameObject/LocalGame/playerPiece";
 
 const { ccclass, property } = _decorator;
 export const eventCenter = {
@@ -59,22 +60,26 @@ export const eventCenter = {
       // console.log("player");
       const initPiece = (player: Node, index: number) => {
         const gameMap = this.allNodes.Canvas.GameMap;
-        resources.load("prefabs/PlayerPiece", Prefab, (err, prefab) => {
-          const piece = instantiate(prefab) as any;
-          gameMap.addChild(piece);
-          this.updateNodes();
-          renamePrefab(piece, `Piece_${index}`);
-          piece.$playerPiece.setAll(player, 0, 1);
-          piece.$Sprite.color = piece.$playerPiece.player.$Sprite.color;
-          piece.setPosition(
-            gameMap[`LandBlock_${piece.$playerPiece.currentPosition}`]
-              .$landBlock.data.x,
-            gameMap[`LandBlock_${piece.$playerPiece.currentPosition}`]
-              .$landBlock.data.y + 20
-          );
+        return new Promise((resolve, reject) => {
+          resources.load("prefabs/PlayerPiece", Prefab, (err, prefab) => {
+            const piece = instantiate(prefab) as any;
+            gameMap.addChild(piece);
+            this.updateNodes();
+            renamePrefab(piece, `Piece_${index}`);
+            piece.$playerPiece.setAll(player, 0, 1);
+            piece.$Sprite.color = piece.$playerPiece.player.$Sprite.color;
+            piece.setPosition(
+              gameMap[`LandBlock_${piece.$playerPiece.currentPosition}`]
+                .$landBlock.data.x,
+              gameMap[`LandBlock_${piece.$playerPiece.currentPosition}`]
+                .$landBlock.data.y + 20
+            );
+            resolve(true);
+          });
         });
       };
       const center = this.allNodes.Canvas.Center;
+      const loadList = [];
       (center.PlayerZone_1.$player as Player).setAll(1, "你", true, 1500);
       center.PlayerZone_1.PlayerMegBox.Name.$Label.string = "你";
       center.PlayerZone_1.Money.Amount.$Label.string = "1500";
@@ -84,8 +89,18 @@ export const eventCenter = {
         center[`PlayerZone_${i}`].Money.Amount.$Label.string = "1500";
         center[`PlayerZone_${i}`].PlayerMegBox.Name.$Label.string =
           "AI玩家" + i;
-        initPiece(center[`PlayerZone_${i}`], i);
+        loadList.push(initPiece(center[`PlayerZone_${i}`], i));
       }
+      return Promise.all(loadList);
+    },
+    updateRound: function (round: number) {
+      const center = this.allNodes.Canvas.Center;
+      center.CenterBanner_1.Round.$Label.string = `第${round}轮`;
+    },
+    switchPlayer: function (playerID: number) {
+      const center = this.allNodes.Canvas.Center;
+      const currentPlayer = center[`PlayerZone_${playerID}`].$player;
+      center.CenterBanner_2.PlayerHint.$Label.string = `现在是${currentPlayer.playerName}的回合`;
     },
   },
 };
